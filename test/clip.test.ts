@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { clipAddress, clipInfo } from "../src/clip.ts";
+import { blockFor, clipAddress, clipSize } from "../src/clip.ts";
 
 const CLIP = "https://clips.version.cam/versioncam/versioncam/01-create-a-shipment";
+const PINNED = `${CLIP}@f76139c7446d`;
 
 test("a clip's link is its own address", () => {
   assert.equal(clipAddress(CLIP), CLIP);
@@ -11,7 +12,7 @@ test("a clip's link is its own address", () => {
 });
 
 test("a pinned version keeps its pin", () => {
-  assert.equal(clipAddress(`${CLIP}@f76139c7446d`), `${CLIP}@f76139c7446d`);
+  assert.equal(clipAddress(PINNED), PINNED);
 });
 
 test("the embed page's address, a query and a fragment come back as the clip", () => {
@@ -35,40 +36,79 @@ test("anything that isn't a clip on version.cam is not played", () => {
   }
 });
 
-/** A fetch that answers one address with one response. */
-function answering(status: number, body: unknown): typeof fetch {
+/** A fetch that answers one clip's JSON with one response. */
+function answering(clip: string, status: number, body: unknown): typeof fetch {
   return (async (input: RequestInfo | URL) => {
-    assert.equal(String(input), `${CLIP}?format=json`);
+    assert.equal(String(input), `${clip}?format=json`);
     return new Response(JSON.stringify(body), { status });
   }) as typeof fetch;
 }
 
-test("reads a clip's title and size", async () => {
-  const info = await clipInfo(
-    CLIP,
-    answering(200, { title: "Create a shipment", width: 1280, height: 800, mobile: null }),
-  );
-  assert.deepEqual(info, { title: "Create a shipment", width: 1280, height: 800, mobile: null });
+/** A fetch the test expects never to be called. */
+const never = (async (input: RequestInfo | URL) => {
+  assert.fail(`fetched ${String(input)}`);
+}) as typeof fetch;
+
+const failing = (async () => {
+  throw new TypeError("fetch failed");
+}) as typeof fetch;
+
+test("reads a clip's size", async () => {
+  const size = await clipSize(CLIP, answering(CLIP, 200, { width: 1280, height: 800 }));
+  assert.deepEqual(size, { width: 1280, height: 800 });
 });
 
-test("reads a phone version's size", async () => {
-  const info = await clipInfo(
+test("a private or missing clip, a broken answer and a failed fetch have no size", async () => {
+  assert.equal(await clipSize(CLIP, answering(CLIP, 404, { error: "No such clip." })), null);
+  assert.equal(await clipSize(CLIP, answering(CLIP, 200, { title: "No size" })), null);
+  assert.equal(await clipSize(CLIP, answering(CLIP, 200, { width: "1280", height: 800 })), null);
+  assert.equal(await clipSize(CLIP, answering(CLIP, 200, { width: 0, height: 800 })), null);
+  assert.equal(await clipSize(CLIP, failing), null);
+});
+
+test("a clip plays from its embed page at its own shape", async () => {
+  const block = await blockFor(CLIP, answering(CLIP, 200, { width: 1280, height: 800 }));
+  assert.deepEqual(block, { kind: "player", frame: `${CLIP}/embed`, aspectRatio: 1.6 });
+});
+
+test("a pasted embed page's address plays the same clip", async () => {
+  const block = await blockFor(`${CLIP}/embed`, answering(CLIP, 200, { width: 1280, height: 800 }));
+  assert.deepEqual(block, { kind: "player", frame: `${CLIP}/embed`, aspectRatio: 1.6 });
+});
+
+test("a pinned version plays that version", async () => {
+  const block = await blockFor(PINNED, answering(PINNED, 200, { width: 1280, height: 800 }));
+  assert.deepEqual(block, { kind: "player", frame: `${PINNED}/embed`, aspectRatio: 1.6 });
+});
+
+test("a clip with a phone version is framed at the desktop clip's shape", async () => {
+  const block = await blockFor(
     CLIP,
-    answering(200, {
-      title: "Create a shipment",
+    answering(CLIP, 200, {
       width: 1280,
       height: 800,
       mobile: { clip: "01-create-a-shipment-mobile", width: 390, height: 844, fps: 60 },
     }),
   );
-  assert.deepEqual(info?.mobile, { width: 390, height: 844 });
+  assert.deepEqual(block, { kind: "player", frame: `${CLIP}/embed`, aspectRatio: 1.6 });
 });
 
-test("a private or missing clip, a broken answer and a failed fetch give nothing", async () => {
-  assert.equal(await clipInfo(CLIP, answering(404, { error: "No such clip." })), null);
-  assert.equal(await clipInfo(CLIP, answering(200, { title: "No size" })), null);
-  const failing = (async () => {
-    throw new TypeError("fetch failed");
-  }) as typeof fetch;
-  assert.equal(await clipInfo(CLIP, failing), null);
+test("a private or missing clip, and a failed fetch, show the link as a card", async () => {
+  const card = { kind: "card", title: CLIP, link: CLIP };
+  assert.deepEqual(await blockFor(CLIP, answering(CLIP, 404, { error: "No such clip." })), card);
+  assert.deepEqual(await blockFor(CLIP, failing), card);
+});
+
+test("a project's page or another site shows a card without asking version.cam", async () => {
+  for (const link of ["https://clips.version.cam/versioncam/versioncam", "https://example.com/"]) {
+    assert.deepEqual(await blockFor(link, never), { kind: "card", title: link, link });
+  }
+});
+
+test("a block with no link points to version.cam", async () => {
+  assert.deepEqual(await blockFor("", never), {
+    kind: "card",
+    title: "version.cam",
+    link: "https://version.cam",
+  });
 });

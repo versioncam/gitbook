@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Nothing is granted that a job does not name.
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Typecheck, tests and GitBook's check
+    # Pinned like versioncam's other workflows: ubuntu-latest moved to 26.04
+    # in October 2026, and a new image is a change we'd rather choose.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      # Builds the script the way `gitbook integration publish` would and
+      # loads it in GitBook's local runtime. It needs no GitBook sign-in.
+      - run: npm run check

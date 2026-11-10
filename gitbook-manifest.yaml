@@ -1,21 +1,26 @@
 name: versioncam
 title: version.cam
 icon: ./assets/icon.png
+previewImages:
+    - ./assets/preview-page.png
+    - ./assets/preview-git-sync.png
 description: Play a version.cam clip in your docs by pasting its link.
 summary: |
     # Overview
 
-    version.cam hosts short videos of your web app that your CI records from a script in your repository. Each clip has a permanent link that always plays its newest passing version.
+    version.cam hosts short videos of your web app, which your CI records from a script in your repository. Each clip has a permanent link that always plays its newest passing version.
 
     # How it works
 
-    Paste a clip's link from clips.version.cam into a page. The integration turns it into the clip's player, at the clip's own size. When CI records a new version of the clip, your page plays it without anyone editing the page.
+    Paste a clip's link from clips.version.cam into a page. The integration turns it into the clip's player, at the clip's own size. When CI records a new version of the clip, your page plays it without anyone editing the page. To show one version that never changes, paste that version's link instead: it ends in `@` and a commit.
 
     If you write your docs in a repository with Git Sync, add a clip with `{% @versioncam/clip url="https://clips.version.cam/<owner>/<repo>/<clip>" %}`.
 
+    A link to a private clip, or to something that isn't a clip, shows as a link card. To play a private project's clips in your docs, make them unlisted in the project's settings on version.cam.
+
     # Configure
 
-    Install the integration on the spaces where you want clips, or on your whole organization. It reads nothing from your GitBook content.
+    Install the integration on the spaces where you want clips, or on your whole organization. It asks for no permissions and reads nothing from your GitBook content.
 visibility: private
 organization: version-cam
 script: ./src/index.tsx
@@ -30,3 +35,5 @@ externalLinks:
     - label: How version.cam works
       url: https://version.cam/more/version-cam/
 target: space
+categories:
+    - content
