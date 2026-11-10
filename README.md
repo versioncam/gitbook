@@ -4,6 +4,10 @@ A GitBook integration that plays a [version.cam](https://version.cam) clip
 in a GitBook page. Paste a clip's link from `clips.version.cam` into a page
 and it becomes the clip's player, at the clip's own size. When CI records a
 new version of the clip, the page plays it without anyone editing the page.
+
+Install it on your GitBook organization from
+https://app.gitbook.com/integrations/versioncam.
+
 To show one version that never changes, paste that version's link instead:
 it ends in `@` and a commit.
 
