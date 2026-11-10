@@ -1,0 +1,22 @@
+{
+  "name": "versioncam-gitbook",
+  "private": true,
+  "description": "The version.cam integration for GitBook: paste a clip's link into a page and it plays.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "check": "gitbook integration check",
+    "test": "node --test --experimental-strip-types test/*.test.ts",
+    "publish-integration": "gitbook integration publish ."
+  },
+  "dependencies": {
+    "@gitbook/runtime": "0.25.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20261110.1",
+    "@gitbook/cli": "0.33.0",
+    "@gitbook/tsconfig": "0.1.2",
+    "typescript": "5.9.3"
+  }
+}

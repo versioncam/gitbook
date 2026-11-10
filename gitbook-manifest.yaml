@@ -1,0 +1,32 @@
+name: versioncam
+title: version.cam
+icon: ./assets/icon.png
+description: Play a version.cam clip in your docs by pasting its link.
+summary: |
+    # Overview
+
+    version.cam hosts short videos of your web app that your CI records from a script in your repository. Each clip has a permanent link that always plays its newest passing version.
+
+    # How it works
+
+    Paste a clip's link from clips.version.cam into a page. The integration turns it into the clip's player, at the clip's own size. When CI records a new version of the clip, your page plays it without anyone editing the page.
+
+    If you write your docs in a repository with Git Sync, add a clip with `{% @versioncam/clip url="https://clips.version.cam/<owner>/<repo>/<clip>" %}`.
+
+    # Configure
+
+    Install the integration on the spaces where you want clips, or on your whole organization. It reads nothing from your GitBook content.
+visibility: private
+organization: version-cam
+script: ./src/index.tsx
+scopes: []
+blocks:
+    - id: clip
+      title: version.cam
+      description: A clip of your app that CI keeps up to date
+      urlUnfurl:
+          - https://clips.version.cam/**
+externalLinks:
+    - label: How version.cam works
+      url: https://version.cam/more/version-cam/
+target: space

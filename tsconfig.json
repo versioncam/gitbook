@@ -1,0 +1,10 @@
+{
+  "extends": "@gitbook/tsconfig/integration.json",
+  "compilerOptions": {
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "moduleResolution": "bundler",
+    "module": "ESNext",
+    "strict": true
+  },
+  "include": ["src"]
+}
