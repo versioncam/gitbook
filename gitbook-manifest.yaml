@@ -21,7 +21,7 @@ summary: |
     # Configure
 
     Install the integration on the spaces where you want clips, or on your whole organization. It asks for no permissions and reads nothing from your GitBook content.
-visibility: private
+visibility: unlisted
 organization: version-cam
 script: ./src/index.tsx
 scopes: []
